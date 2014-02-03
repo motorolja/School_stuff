@@ -1,60 +1,39 @@
 import java.io.*;
 import java.net.*;
-//import java.util.Scanner; //Input
 
 public class ProxyServer
 {
     public static void main(string args[])
     {
+	if( args[].length != 3 )
+	    return;
+	//Need to parse string to int
+	String hostname = args[0];
+	int server_port = Integer.parseInt(args[1]), remote_port = Integer.parseInt(args[2]);
+	RunServer( hostname, server_port, remote_port);
+    }
+
+    public static void RunServer(String hostname, int server_port, int remote_port)
+    {
 	try
 	    {
-		// set port for communication between proxy and client
-		if(args.length != 3)
+		ServerSocket welcome_socket = new ServerSocket(server_port);
+		while(true)
 		    {
-			throw new RuntimeException("for wrong number of arguments\n");
+			Socket client_socket = welcome_socket.accept(); // socket for the newly accepted client on our server-side
+			PrintWriter from_server = new PrintWriter(client_socket.getOutputStream(), true);
+			BufferedReader to_server = new BufferedReader( new InputStreamReader ( client_socket.getInputStream() ) );
+			
+			String input_line;
+			while( ( input_line = to_server.readLine() ) != null )
+			    out.println( input_line );
 		    }
-
 	    }
-	catch( exception e )
+	catch( IOException e )
 	    {
 		System.err.println(e);
-		System.err.println("Awsome error msg\n");
-		System.exit(1);
+		System.out.println("Error with creating a new socket\n");
 	    }
-	//Need to parse string to int
-	int server_port = Integer.parseInt(args[1]), client_port = Integer.parseInt(args[2]);
-	Socket client_socket = null; // between server and proxy
-	Socket server_socket = null; // between client and proxy
-	run_server(args[0],     server_port, server_socket);
-	run_client("something", client_port, client_socket);
-	
     }
-
-    public static run_server(string host, int server_port, Socket server_socket )
-    {
-	server_socket = new Socket(host, server_port); // sets the socket between server and proxy
-   
-	
-	// some datastreams for incoming connections (one for server and one for client)
-	
-	// datastreams for outgoing connections  (one for server and one for client)
-	DataOutputStream to_client  ( new DataOutputStream ( server_socket.getOutputStream() ) );
-	BufferedReader   from_client( new BufferedReader( new inputStreamReader( server_socket.getInputStream () ) ) );
-
-
-
-
-    }
-
-    public static run_client( string host, int client_port, Socket client_socket )
-    {
-	client_socket = new Socket( host, client_port ); // sets the socket between client and proxy
-
-	DataOutputStream to_server( new DataOutputStream ( client_socket.getOutputStream() ) );
-	BufferedReader   from_server( new BufferedReader( new inputStreamReader( client_socket.getInputStream () ) ) );
-
-	
-    }
-
 }
 
