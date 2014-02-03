@@ -1,19 +1,21 @@
-import java.io.*;
 import java.net.*;
+import java.io.*;
 
-public class ProxyServer
+public class lab2
 {
-    public static void main(string args[])
+    public static void main(String args[])
     {
-	if( args[].length != 3 )
-	    return;
+	if( args.length != 1 )
+	    {
+		System.err.println("Wrong number or args\n");
+		System.exit(1);
+	    }	
 	//Need to parse string to int
-	String hostname = args[0];
-	int server_port = Integer.parseInt(args[1]), remote_port = Integer.parseInt(args[2]);
-	RunServer( hostname, server_port, remote_port);
+	int server_port = Integer.parseInt(args[0]), remote_port = 80;
+	RunServer( server_port, remote_port);
     }
 
-    public static void RunServer(String hostname, int server_port, int remote_port)
+    public static void RunServer(int server_port, int remote_port)
     {
 	try
 	    {
@@ -26,7 +28,7 @@ public class ProxyServer
 			
 			String input_line;
 			while( ( input_line = to_server.readLine() ) != null )
-			    out.println( input_line );
+			    System.out.println( input_line );
 		    }
 	    }
 	catch( IOException e )
