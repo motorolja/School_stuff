@@ -1,10 +1,10 @@
 import java.net.*;
 import java.io.*;
-import java.util.ArrayList;
+//import java.util.ArrayList;
 
 public class lab2
 {
-    public static void main(String args[])
+    public static void main(String args[]) throws Exception
     {
 	if( args.length != 1 )
 	    {
@@ -12,44 +12,60 @@ public class lab2
 		System.exit(1);
 	    }	
 	//Need to parse string to int
-	int server_port = Integer.parseInt(args[0]), remote_port = 80;
-	RunServer( server_port, remote_port);
+	int server_port = Integer.parseInt(args[0]);
+	RunServer( server_port );
     }
 
-    public static void RunServer(int server_port, int remote_port)
+    public static void RunServer(int server_port) throws Exception
     {
-	try
+	ServerSocket welcome_socket = new ServerSocket(server_port);
+	while(true)
 	    {
-		ServerSocket welcome_socket = new ServerSocket(server_port);
-		while(true)
-		    {
-			/* Client-side */
-			Socket client_socket = welcome_socket.accept(); // socket for the newly accepted client on our server-side
-			PrintWriter from_server = new PrintWriter(client_socket.getOutputStream(), true); // enables output
-			BufferedReader to_server = new BufferedReader( new InputStreamReader ( client_socket.getInputStream() ) ); // get the input
-
-			String input_line = to_server.readLine();
-			ArrayList<String> input = new ArrayList<String>(); // so that we can change the content of each line
-			while( input_line != null ) // output the data we got from the client
-			    {
-				input.add(input_line ); // adds the current line to the array, check if we really needed to add '\n'
-				System.out.println( input_line ); // outputs the current line for troubleshooting
-				System.out.println( input.size() );
-				input_line = to_server.readLine();
-			    }
-			System.out.println(input.get(1));
-			/* Server-side */
-			// need to parse "input" for the hostname and set connection Close(), not keep-alive
-			String delim = " ";
-			String[] temp = input.get(0).split(delim); // gets the string at index 0 and splits it at every " "
-			System.out.println("Hostname: " + temp[1]);
-		    }
-	    }
-	catch( IOException e )
-	    {
-		System.err.println(e);
-		System.out.println("Error in RunServer, have premission to use sockets?\n");
+		Server( welcome_socket.accept() );
 	    }
     }
-}
+    public static void Server( Socket server_side ) throws Exception
+    {
+	/****** server-side ********************/
 
+	PrintWriter to_client = new PrintWriter(server_side.getOutputStream(), true); // enables output
+	BufferedReader from_client = new BufferedReader( new InputStreamReader ( server_side.getInputStream() ) ); // gets the input and reads it to a buffer
+
+	String hostname = "liu.se";
+	System.out.println("Hostname: " + hostname); // troubleshooting
+
+	/*-----------------------------------*/
+	/****** client-side ******************/
+			
+	Socket client_side = new Socket(hostname, 80); // initiates with the hostname and port
+	PrintWriter to_server = new PrintWriter( client_side.getOutputStream(), true ); // enables output 
+	BufferedReader from_server = new BufferedReader( new InputStreamReader ( client_side.getInputStream() ) ); // gets the input and reads it to a buffer
+	
+	System.out.println( "before write to server" );
+	String input_line = null;
+	for( int i = 0; i < 8; ++i)
+	    {
+		input_line = from_client.readLine();
+		if( input_line == null )
+		    break;
+		System.out.println(input_line);
+		to_server.println(input_line);
+	    }
+	to_server.println("\r");
+	/*-----------------------------------*/	
+	/****** server-side ********************/
+	System.out.println( "before write to client");
+	input_line = null;
+	while( true )
+	    {
+		input_line = from_server.readLine();
+		if( input_line == null )
+		    break;
+		System.out.println(input_line);	
+		to_client.println(input_line);
+	    }
+	/*-----------------------------------*/
+	System.out.println("End of transmission!");
+    }
+    
+}
