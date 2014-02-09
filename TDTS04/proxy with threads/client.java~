@@ -1,0 +1,68 @@
+import java.io.*;
+import java.net.*;
+
+public class client extends Thread
+{
+    private Socket client_side = null;
+    private PrintWriter out = null;
+    private InputStream in = null;
+    
+    public client( String host, int port) throws IOException
+    {
+        super("client"); 
+	System.out.println("in client constructor");
+	client_side = new Socket(host, port);
+	client_side.setKeepAlive(false); // Connection: close
+	out = new PrintWriter( client_side.getOutputStream(), true ); // true = autoflush
+	in = client_side.getInputStream() ;
+    }
+    
+    public void run()
+    {
+	System.out.println("2-- Wrote the input from server-side to client-side output");
+    }
+    
+    public void send_line( String input_line )
+    {
+	if( input_line.toLowerCase().startsWith("connection:") )
+	    input_line = "Connection: close";
+	
+	if ( input_line.toLowerCase().startsWith("accept-encoding:") )
+	    return;
+	else if( input_line.equals(" ") )
+	    {
+		System.out.println("close");
+		out.print("\r\n");
+	    }
+	else
+	    {
+		out.print(input_line + "\r\n");
+		System.out.println(input_line);
+	    }
+    }
+
+    public int read( byte[] buffer ) throws IOException
+    {
+	System.out.println("reading");
+	int res = in.read(buffer);
+	System.out.println(res);
+	return res;
+    } 
+
+    public void close()
+    {
+	try 
+	    { 
+		client_side.shutdownInput();
+		client_side.shutdownOutput();
+		in.close();
+		out.close();
+		client_side.close(); 
+	    }
+	catch( IOException e )
+	    {
+		System.err.println("Error while closing client_side socket");
+		e.printStackTrace();
+	    }
+    }
+}
