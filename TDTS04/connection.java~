@@ -1,0 +1,33 @@
+import java.io.*;
+import java.net.*;
+
+public class connection extends Thread
+{
+    private Socket server_side = null;
+    public connection( Socket server_side ) 
+    {
+        super("connection"); 
+        this.server_side = server_side;
+    }
+    
+    public void run()
+    {
+        try (
+	     PrintWriter out = new PrintWriter( server_side.getOutputStream(), true ); // true = autoflush
+	     BufferedReader in = new BufferedReader( new InputStreamReader( server_side.getInputStream() ) );
+	     ) 
+		{
+		    System.out.println("1-- created a server-side socket after a request on welcome-socket");
+		    String input_line, output_line; // we read line by line
+		    client client_side = new client(); // a class that handles the client_side of the proxy
+		    client_side.start(in); // starts the client-side and sends the input
+
+		    server_side.close();
+		} 
+	catch (IOException e) 
+	    {
+		System.out.println("Error while running a thread in connection");
+		e.printStackTrace();
+	    }
+    }
+}

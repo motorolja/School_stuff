@@ -1,0 +1,52 @@
+import java.io.*;
+import java.net.*;
+
+public class client extends Thread
+{
+    private String hostname = null;
+    private int port = 80; // http:80
+    private Socket client_side = null; // null initiate
+    public client( Socket client_side ) 
+    {
+        super("client"); 
+        this.client_side = client_side;
+    }
+    
+    public void run( BufferedReader input ) // takes the input from the server_side
+    {
+	input.ready();// if we are ready to read, stalls the proccess at this point until it is ready
+	String input_line = input.readLine(); // reads a line, skips \r\n
+
+	input.ready();// if we are ready to read, stalls the proccess at this point until it is ready
+	String host_line = input.readLine(); // reads a line, skips \r\n
+	hostname = host_line.substring(6); // "host: hostname...." [0,1,2,3,4,5,6,..,n] hostname starts at index 6 of the second_line
+	
+	client_side = new Socket( hostname, port ); // sets the client-side Socket
+        client_side.setKeepAlive(false); // Connection: close
+	
+        try (
+	     PrintWriter out = new PrintWriter( client_side.getOutputStream(), true ); // true = autoflush
+	     BufferedReader in = new BufferedReader( new InputStreamReader( client_side.getInputStream() ) );
+	     )
+		{
+		    // our first 2 lines that we needed to read for hostname
+		    out.print(input_line + "\r\n");
+		    out.print(host_line + "\r\n");
+	    
+		    input.ready();
+		    System.out.println("2-- Writing the input from server-side to client-side output");
+		    while( ( input_line = input.readLine() ) != null )
+			{
+			    if( input_line.startsWith("Connection: k") // want to send Connection: close
+				input_line = "Connection: close";
+			    out.print(input_line + "\r\n");
+			    input.ready();
+			}
+		}
+	catch ( IOException e )
+	    {
+		System.err.println("Error in Thread::run");
+		e.printStackTrace();
+	    }
+    }
+}
